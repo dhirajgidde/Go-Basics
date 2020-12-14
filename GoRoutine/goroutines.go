@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 var wg = sync.WaitGroup{}
 
 func show(str string) {
-	wg.Add(1)
+	wg.Add(5)
 	for i := 0; i < 5; i++ {
 		//time.Sleep(1 * time.Second)
 		fmt.Println(str)
@@ -31,5 +32,6 @@ func main() {
 	ch := make(chan int)
 	go cal(ch)
 	ch <- 25
+	time.Sleep(1 * time.Second)
 
 }

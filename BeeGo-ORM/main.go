@@ -1,28 +1,32 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/astaxie/beego/client/orm"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type User struct {
-	Id      int //default field
-	Name    string
-	Subject string
-	Marks   int
+	Id      int    `json:"id"` //default field
+	Name    string `json:"name"`
+	Subject string `json:"subject"`
+	Marks   int    `json:"marks"`
 }
 
+var jsonString []byte
+
 func init() {
-	orm.RegisterModel(new(User))                                                         //Register A ORM
-	orm.RegisterDriver("mysql", orm.DRMySQL)                                             //Register A Driver
-	orm.RegisterDataBase("default", "mysql", "dhiraj:dhiraj@tcp(127.0.0.1:3306)/dhiraj") //Register A DataBase
+	orm.RegisterModel(new(User))                                                    //Register A ORM
+	orm.RegisterDriver("mysql", orm.DRMySQL)                                        //Register A Driver
+	orm.RegisterDataBase("default", "mysql", "root:dev@tcp(127.0.0.1:3306)/dhiraj") //Register A DataBase
 }
 
 func fetchDetails() {
 	o := orm.NewOrm()
-	user := User{Id: 1}
+	user := User{Id: 8}
 
 	err := o.Read(&user)
 
@@ -32,23 +36,59 @@ func fetchDetails() {
 		fmt.Println("No primary key is found")
 	} else {
 		fmt.Println(user)
+
+	}
+	Bytearr, err := json.Marshal(user)
+	jsonString = Bytearr
+	if err != nil {
+		panic(err.Error())
+	} else {
+		fmt.Println(string(Bytearr))
 	}
 }
 
 func insertQuery() {
 	o := orm.NewOrm()
 	var user User
-	user.Id = 2
+	user.Id = 8
 	user.Name = "Tata"
-	user.Subject = "nano"
+	user.Subject = "Marathi"
 	user.Marks = 450
 
 	id, err := o.Insert(&user)
 	if err == nil {
 		fmt.Println(id)
 		fmt.Println("Record Inserted")
+
+	} else {
+		panic(err.Error())
 	}
 
+}
+
+func insertMultiple() {
+	o := orm.NewOrm()
+	//var user User
+	user := []User{
+		{
+			Id:      9,
+			Name:    "Roshan",
+			Subject: "Geogrphy",
+			Marks:   86,
+		},
+		{
+			Id:      10,
+			Name:    "Mogambo",
+			Subject: "Aljebra",
+			Marks:   96,
+		},
+	}
+	inserted, err := o.InsertMulti(2, user)
+	if err == nil {
+		fmt.Println(inserted)
+		fmt.Println("Record inserted Successfully")
+
+	}
 }
 
 func updateQuery() {
@@ -72,9 +112,29 @@ func deleteQuery() {
 	}
 }
 
+func indexElement(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, string(jsonString))
+}
+
+func connectServer() {
+	http.HandleFunc("/", indexElement)
+	http.ListenAndServe(":9085", nil)
+}
+
+// func applyingFilter() {
+// 	o := orm.NewOrm()
+// 	qs := o.QueryTable("user")
+// 	res := qs.Filter("name__contains", "Ta")
+// 	fmt.Println(res)
+// }
+
 func main() {
-	//fetchDetails()
+	fetchDetails()
 	//insertQuery()
 	//deleteQuery()
-	updateQuery()
+	//updateQuery()
+	//insertMultiple()
+	//applyingFilter()
+
+	connectServer()
 }

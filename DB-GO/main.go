@@ -67,7 +67,7 @@ func fetchRecord(db *sql.DB) {
 }
 
 func main() {
-	fmt.Println("GO My-Sql Tuterial....")
+	fmt.Println("GO My-Sql Tutorial....")
 
 	dbDriver := "mysql"
 	dbUser := "dhiraj"
