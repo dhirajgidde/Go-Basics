@@ -7,6 +7,7 @@ import (
 
 	"github.com/astaxie/beego/client/orm"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/labstack/echo"
 )
 
 type User struct {
@@ -24,9 +25,10 @@ func init() {
 	orm.RegisterDataBase("default", "mysql", "root:dev@tcp(127.0.0.1:3306)/dhiraj") //Register A DataBase
 }
 
-func fetchDetails() {
+// e.GET("/users/:id",user)
+func fetchDetails(c echo.Context) error {
 	o := orm.NewOrm()
-	user := User{Id: 8}
+	user := User{Id: 2}
 
 	err := o.Read(&user)
 
@@ -45,23 +47,28 @@ func fetchDetails() {
 	} else {
 		fmt.Println(string(Bytearr))
 	}
+	return c.JSON(http.StatusOK, user)
 }
 
-func insertQuery() {
+func insertQuery(c echo.Context) error {
 	o := orm.NewOrm()
+
+	//user := new(User)
 	var user User
-	user.Id = 8
-	user.Name = "Tata"
-	user.Subject = "Marathi"
-	user.Marks = 450
+	user.Id = 3
+	user.Name = "das"
+	user.Subject = "dasd"
+	user.Marks = 20
 
 	id, err := o.Insert(&user)
 	if err == nil {
 		fmt.Println(id)
 		fmt.Println("Record Inserted")
+		return c.JSON(http.StatusOK, "Record Inserted")
 
 	} else {
 		panic(err.Error())
+		//return c.String(http.StatusUnsupportedMediaType, "Record not Inserted")
 	}
 
 }
@@ -129,12 +136,21 @@ func connectServer() {
 // }
 
 func main() {
-	fetchDetails()
+
+	e := echo.New()
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Hellow World")
+	})
+	e.POST("/user", insertQuery)
+	e.GET("/users", fetchDetails)
+	e.Logger.Fatal(e.Start(":9099"))
+
+	//fetchDetails()
 	//insertQuery()
 	//deleteQuery()
 	//updateQuery()
 	//insertMultiple()
 	//applyingFilter()
 
-	connectServer()
+	//connectServer()
 }
