@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
 	"strconv"
 	"time"
 
@@ -12,7 +10,7 @@ import (
 )
 
 const (
-	topic         = "message-log"
+	topic         = "MyTopic"
 	brokerAddress = "localhost:9092"
 )
 
@@ -25,19 +23,18 @@ func produce(ctx context.Context) {
 	i := 0
 	//Brocker used to connect with the server
 	//topic : name of the topic
-	l := log.New(os.Stdout, "Kafka reader: ", 0)
+	//l := log.New(os.Stdout, "Kafka reader: ", 0)
 	w := kafka.NewWriter(kafka.WriterConfig{
-		Brokers: []string{brokerAddress},
-		Topic:   topic,
-
-		Logger: l,
+		Brokers:      []string{brokerAddress},
+		Topic:        topic,
+		RequiredAcks: 1,
 	})
 
 	// WriteMessages are always in form of key-and-value pair
-	for j := 0; j < 7; j++ {
+	for {
 		err := w.WriteMessages(ctx, kafka.Message{
 			Key:   []byte(strconv.Itoa(i)),
-			Value: []byte("The Message from a producer" + strconv.Itoa(i)),
+			Value: []byte(strconv.Itoa(i)),
 		})
 
 		if err != nil {
@@ -51,20 +48,20 @@ func produce(ctx context.Context) {
 }
 
 func consume(ctx context.Context) {
-	l := log.New(os.Stdout, "Kafka Writer: ", 0)
+	//l := log.New(os.Stdout, "Kafka Writer: ", 0)
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{brokerAddress},
 		Topic:   topic,
 		GroupID: "my-group",
-		Logger:  l,
 	})
 
-	for j := 0; j < 7; j++ {
+	for {
 		msg, err := r.ReadMessage(ctx)
 		if err != nil {
 			panic("Could not read the messages" + err.Error())
 		}
-		fmt.Println("Recieved in consumer :", string(msg.Value))
+		fmt.Println(string(msg.Value))
+		time.Sleep(time.Second)
 	}
 }
 
@@ -73,4 +70,5 @@ func main() {
 
 	go produce(ctx)
 	consume(ctx)
+
 }
